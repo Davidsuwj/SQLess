@@ -3,590 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DataMart AI Assistant</title>
-  <link rel="icon" type="image/svg+xml" href="" />
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
-  <style>
-    /* 全域預設 */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #121212;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-    }
-
-    /* 啟動畫面 (Splash Screen) */
-    .splash-screen {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: #121212;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      opacity: 1;
-      transition: opacity 0.5s ease-out;
-    }
-    .splash-content {
-      text-align: center;
-      color: #fff;
-      transform: scale(0.95);
-      opacity: 0;
-      animation: splashAppear 0.8s cubic-bezier(0.17, 0.67, 0.83, 0.67) forwards;
-    }
-    @keyframes splashAppear {
-      0% {
-        transform: scale(0.95);
-        opacity: 0;
-      }
-      100% {
-        transform: scale(1);
-        opacity: 1;
-      }
-    }
-    .logo-container {
-      margin-bottom: 20px;
-      position: relative;
-    }
-    /* 此 Logo 同時用於 Splash 與 Header */
-    .logo {
-      width: 80px;
-      height: 80px;
-      opacity: 0;
-      transform: translateY(20px);
-      animation: logoAnimation 1.2s cubic-bezier(0.17, 0.67, 0.83, 0.67) 0.3s forwards;
-    }
-    @keyframes logoAnimation {
-      0% {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      100% {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    .title {
-      font-size: 2.5rem;
-      font-weight: 600;
-      margin: 20px 0;
-      opacity: 0;
-      transform: translateY(20px);
-      animation: titleAnimation 1.2s cubic-bezier(0.17, 0.67, 0.83, 0.67) 0.6s forwards;
-    }
-    @keyframes titleAnimation {
-      0% {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      100% {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    .loading-bar {
-      width: 200px;
-      height: 2px;
-      background: rgba(255, 255, 255, 0.1);
-      margin: 30px auto;
-      position: relative;
-      overflow: hidden;
-      border-radius: 1px;
-      opacity: 0;
-      animation: barAppear 0.5s ease-out 1s forwards;
-    }
-    @keyframes barAppear {
-      0% {
-        opacity: 0;
-      }
-      100% {
-        opacity: 1;
-      }
-    }
-    .loading-progress {
-      position: absolute;
-      top: 0;
-      left: 0;
-      height: 100%;
-      width: 0%;
-      background: #fff;
-      animation: progress 1.5s cubic-bezier(0.17, 0.67, 0.83, 0.67) 1.2s forwards;
-    }
-    @keyframes progress {
-      0% {
-        width: 0%;
-      }
-      100% {
-        width: 100%;
-      }
-    }
-
-    /* 左側圖表欄 */
-    .chart-panel {
-      position: fixed;
-      left: -900px;
-      top: 0;
-      width: 900px;
-      height: 100vh;
-      padding: 20px;
-      transition: transform 0.4s ease-out;
-      z-index: 1000;
-      background: #1e1e1e;
-    }
-    .chart-panel.visible {
-      transform: translateX(500px);
-    }
-
-    /* 主內容區 */
-    .main-content {
-      display: flex;
-      position: relative;
-      width: 100%;
-      min-height: 100vh;
-      padding: 20px;
-      box-sizing: border-box;
-      transition: transform 0.4s ease-out;
-    }
-    .main-content.shifted {
-      transform: translateX(450px);
-    }
-
-    /* 主要容器 */
-    .container {
-      width: 100%;
-      max-width: 800px;
-      margin: 20px auto;
-      background: #2a2a2a;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-      border-radius: 16px;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      height: 90vh;
-      opacity: 0;
-      transition: all 0.4s ease-out;
-      position: relative;
-      z-index: 1;
-    }
-    .container.visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    /* Header 區域 */
-    .header {
-      background: linear-gradient(135deg, #3a3a3a, #2a2a2a);
-      padding: 16px 20px;
-      color: #fff;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    .header-title {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .header-title h1 {
-      margin: 0;
-      font-size: 1.5rem;
-      font-weight: 600;
-    }
-    .header-actions {
-      display: flex;
-      gap: 15px;
-      align-items: center;
-    }
-    .header-button {
-      background: rgba(255, 255, 255, 0.2);
-      border: none;
-      border-radius: 8px;
-      padding: 8px;
-      color: #fff;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-    .header-button:hover {
-      background: rgba(255, 255, 255, 0.3);
-      transform: translateY(-1px);
-    }
-
-    /* Analytics 按鈕 */
-    .chart-toggle {
-      background: rgba(255, 255, 255, 0.2);
-      border: none;
-      border-radius: 8px;
-      padding: 8px 12px;
-      color: #fff;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      transition: all 0.2s ease;
-      font-size: 0.9rem;
-    }
-    .chart-toggle:hover {
-      background: rgba(255, 255, 255, 0.3);
-      transform: translateY(-1px);
-    }
-    .chart-toggle i {
-      transition: transform 0.3s ease;
-    }
-    .chart-toggle.active i {
-      transform: rotate(180deg);
-    }
-
-    /* 自訂下拉選單 (可搜尋) */
-    .custom-dropdown {
-      position: relative;
-      width: 150px;
-      font-size: 0.9rem;
-      background: #2a2a2a;
-      color: #ddd;
-      border: 1px solid #444;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      overflow: visible;
-    }
-    .custom-dropdown:hover {
-      background: #333;
-    }
-    .dropdown-header {
-      padding: 6px 10px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .dropdown-header .placeholder {
-      flex: 1;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .dropdown-header i {
-      margin-left: 10px;
-      transition: transform 0.3s ease;
-    }
-    .dropdown-body {
-      position: absolute;
-      top: 40px;
-      left: 0;
-      width: 100%;
-      max-height: 0;
-      overflow: hidden;
-      opacity: 0;
-      background: #2a2a2a;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
-      border-radius: 10px;
-      transition: all 0.2s ease;
-      display: flex;
-      flex-direction: column;
-      z-index: 999;
-    }
-    .custom-dropdown.open .dropdown-body {
-      max-height: 200px;
-      opacity: 1;
-      padding: 6px 0;
-    }
-    .dropdown-body .search-box {
-      position: relative;
-      display: flex;
-      align-items: center;
-      padding: 4px 10px;
-    }
-    .dropdown-body .search-box i {
-      margin-right: 6px;
-      color: #ccc;
-    }
-    .dropdown-body .search-box input {
-      width: 100%;
-      border: none;
-      outline: none;
-      background: transparent;
-      font-size: 14px;
-      color: #ddd;
-    }
-    .dropdown-list {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      flex: 1;
-      overflow-y: auto;
-    }
-    .dropdown-list li {
-      padding: 8px 14px;
-      transition: background 0.2s ease;
-      color: #ddd;
-    }
-    .dropdown-list li:hover {
-      background: #444;
-    }
-
-    /* 聊天框區域 */
-    .chat-box {
-      flex: 1;
-      overflow-y: auto;
-      padding: 20px;
-      background-color: #1e1e1e;
-      scrollbar-width: thin;
-      scrollbar-color: #888 #1e1e1e;
-    }
-    .chat-box::-webkit-scrollbar {
-      width: 6px;
-    }
-    .chat-box::-webkit-scrollbar-track {
-      background: #1e1e1e;
-    }
-    .chat-box::-webkit-scrollbar-thumb {
-      background-color: #888;
-      border-radius: 3px;
-    }
-    .chat-message {
-      margin-bottom: 15px;
-      animation: fadeIn 0.3s ease-in-out;
-      display: flex;
-      flex-direction: column;
-    }
-    .chat-message.user {
-      align-items: flex-end;
-    }
-    .chat-message.bot {
-      align-items: flex-start;
-    }
-    .message-info {
-      font-size: 0.8rem;
-      color: #bbb;
-      margin: 0 12px 4px 12px;
-    }
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(10px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    .chat-message .bubble {
-      display: inline-block;
-      padding: 12px 18px;
-      border-radius: 20px;
-      max-width: 80%;
-      word-wrap: break-word;
-      position: relative;
-      white-space: pre-wrap;
-    }
-    .chat-message.user .bubble {
-      background: #3a3a3a;
-      color: #fff;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-      border-bottom-right-radius: 4px;
-    }
-    .chat-message.bot .bubble {
-      background: #444444;
-      color: #fff;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-      border-bottom-left-radius: 4px;
-    }
-
-    /* 輸入區域 */
-    .input-area {
-      background-color: #2a2a2a;
-      border-top: 3px solid rgba(255, 255, 255, 0.1);
-      padding: 3px;
-      display: flex;
-      justify-content: center;
-    }
-    .input-container {
-      display: flex;
-      align-items: center;  /* 修改這裡，讓 textarea 與按鈕上下置中 */
-      gap: 10px;
-      background: #2a2a2a;
-      border-radius: 25px;
-      padding: 4px 4px 2px 16px;
-      transition: all 0.3s ease;
-      position: relative;
-      max-width: 100%;
-      width: 100%;
-    }
-    .input-container:focus-within {
-      box-shadow: 0 0 0 2px #555;
-    }
-    .input-container textarea {
-      flex: 1;
-      border: none;
-      background: transparent;
-      font-size: 18px;
-      line-height: 1.2;
-      padding: 3px 1px;
-      margin: 0;
-      resize: none;
-      outline: none;
-      font-family: inherit;
-      color: #fff;
-      min-height: 8px;
-    }
-    .input-actions {
-      display: flex;
-      gap: 10px;
-      padding: 8px 0;
-    }
-    .action-button {
-      background: none;
-      border: none;
-      color: #bbb;
-      cursor: pointer;
-      padding: 1px;
-      border-radius: 1px;
-      transition: all 0.2s ease;
-    }
-    .action-button:hover {
-      color: #fff;
-      background: rgba(255, 255, 255, 0.1);
-    }
-    .send-button {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #444, #666);
-      color: #fff;
-      border: none;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.3s ease;
-      opacity: 0;
-      transform: translateX(10px);
-      padding: 0;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
-      margin-top: 0;
-    }
-    .send-button.visible {
-      opacity: 1;
-      transform: translateX(0);
-    }
-    .send-button:hover {
-      background: linear-gradient(135deg, #666, #888);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.7);
-      transform: translateY(-1px);
-    }
-
-    /* Loading Spinner for Charts */
-    .loader {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 80px;
-      height: 80px;
-      border: 8px solid rgba(255, 255, 255, 0.1);
-      border-left-color: #fff;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.3s ease;
-    }
-    .loader.visible {
-      opacity: 1;
-      pointer-events: all;
-    }
-    @keyframes spin {
-      0% {
-        transform: translate(-50%, -50%) rotate(0deg);
-      }
-      100% {
-        transform: translate(-50%, -50%) rotate(360deg);
-      }
-    }
-
-    /* Typing Indicator */
-    .status-indicator {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 16px;
-      background-color: rgba(255, 255, 255, 0.1);
-      border-radius: 16px;
-      font-size: 0.9rem;
-      color: #ccc;
-      margin-bottom: 15px;
-      animation: fadeIn 0.3s ease-in-out;
-      align-self: flex-start;
-      max-width: fit-content;
-    }
-    .status-indicator:not(:empty) {
-      display: flex;
-    }
-    .status-indicator:empty {
-      display: none;
-    }
-    @keyframes typing {
-      0% {
-        content: "";
-      }
-      25% {
-        content: ".";
-      }
-      50% {
-        content: "..";
-      }
-      75% {
-        content: "...";
-      }
-    }
-    .typing::after {
-      content: "";
-      animation: typing 1s infinite;
-    }
-
-    /* Bot 回覆中 SQL 顯示樣式 */
-    .toggle-sql {
-      cursor: pointer;
-      font-size: 0.8rem;
-      color: #bbb;
-      margin: 5px 12px;
-    }
-    .sql-container {
-      display: none;
-      margin: 5px 12px;
-      padding: 10px;
-      background: #333;
-      border-radius: 4px;
-      font-family: monospace;
-      font-size: 0.8rem;
-      color: #fff;
-      white-space: pre-wrap;
-    }
-  </style>
+  <title>SQLess</title>
+  <link rel="stylesheet" type="text/css" href="/static/css/styles.css"/>
 </head>
 <body>
-  <!-- Splash Screen -->
   <div class="splash-screen">
     <div class="splash-content">
       <div class="logo-container">
-        <!-- Logo for Splash Screen -->
-        <svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-          <circle cx="50" cy="50" r="45" fill="#4a4a4a" stroke="#888" stroke-width="5" />
-          <text x="50%" y="55%" fill="#fff" font-size="40" font-family="Arial" text-anchor="middle" dominant-baseline="middle">DM</text>
-        </svg>
       </div>
-      <h1 class="title">DataMart AI Assistant</h1>
+      <h1 class="title">SQLess</h1>
       <div class="loading-bar">
         <div class="loading-progress"></div>
       </div>
@@ -594,334 +19,91 @@
   </div>
   
   <div class="main-content">
+    <!-- 左側 session 列表 -->
+    <div class="sidebar">
+      <!-- <button class="newchat newchat square mdi mdi-pencil" onclick="createSession()" >
+      </button> -->
+      <div class="session-list">
+        <!-- 對話列表會在此顯示 -->
+      </div>
+    </div>
+
     <!-- 左側圖表欄 -->
     <div class="chart-panel">
       <div class="chart-content">
-        <h2 style="color:#fff;">Chart Preview</h2>
+        <h2>Chart Preview</h2>
         <div class="charts">
-          <!-- Placeholder for charts -->
-          <div id="chartsContainer" style="width: 100%; height: 400px; background: #333; margin: 20px 0; border-radius: 8px;"></div>
+          <!-- 這裡對應 scripts.js 的 hideCharts() / loadCharts() -->
+          <div id="chartsContainer"
+               style="width: 100%; height: 400px; background: rgba(255,255,255,0.1); margin: 20px 0; border-radius: 8px;">
+          </div>
           <div class="loader" id="chartsLoader"></div>
         </div>
       </div>
     </div>
-  
-    <!-- 中央主要容器 -->
-    <div class="container">
-      <!-- Header 區域 -->
-      <div class="header">
-        <div class="header-title">
-          <!-- Logo in Header (此 Logo 與 Splash 版相同，可根據需求修改) -->
-          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 100 100">
-            <circle cx="50" cy="50" r="45" fill="#4a4a4a" stroke="#888" stroke-width="5" />
-            <text x="50%" y="55%" fill="#fff" font-size="30" font-family="Arial" text-anchor="middle" dominant-baseline="middle">DM</text>
-          </svg>
-          <h1>DataMart AI Assistant</h1>
-        </div>
-        <div class="header-actions">
-          <!-- Analytics 按鈕 -->
-          <button class="chart-toggle">
-            <i class="fas fa-chart-bar"></i>
-            Analytics
-          </button>
-          <!-- 自訂下拉選單 (可搜尋) -->
-          <div class="custom-dropdown" id="filterDropdown">
-            <div class="dropdown-header" id="dropdownHeader">
-              <span class="placeholder" id="dropdownSelected">Choose Table</span>
-              <i class="fas fa-chevron-down"></i>
-            </div>
-            <div class="dropdown-body" id="dropdownBody">
-              <div class="search-box">
-                <i class="fas fa-search"></i>
-                <input type="text" placeholder="Search..." id="dropdownSearch" />
+        <!-- Header 區域 -->
+        <div class="header">
+          <div class="header-title">
+            <h1>SQLess</h1>
+          </div>
+          <div class="header-actions">
+            <!-- Analytics 按鈕：對應 scripts.js 中 chartToggle 事件 -->
+            <button class="chart-toggle">
+              <i class="mdi mdi-book-open-outline"></i>
+              Analytics
+            </button>
+            <!-- 自訂下拉選單 (可搜尋) -->
+            <div class="custom-dropdown" id="filterDropdown">
+              <div class="dropdown-header" id="dropdownHeader">
+                <span id="dropdownSelected">Choose Table      </span>
+                <i class="mdi mdi-arrow-down nav-icon"></i>
               </div>
-              <ul class="dropdown-list" id="dropdownList">
-                {% for table_name in tables %}
-                <li data-value="{{ table_name }}">{{ table_name }}</li>
-                {% endfor %}
-              </ul>
+              <div class="dropdown-body" id="dropdownBody">
+                <div class="search-box">
+                  <i class="fas fa-search"></i>
+                  <input type="text" placeholder="Search..." id="dropdownSearch" />
+                </div>
+                <ul class="dropdown-list" id="dropdownList">
+                  {% for table_name in tables %}
+                  <li data-value="{{ table_name }}">{{ table_name }}</li>
+                  {% endfor %}
+                </ul>
+              </div>
             </div>
+
+            <!-- 使用者資訊區塊 -->
+            <div class="user-info-container" id="userInfoContainer">
+              <div class="user-avatar">
+                <i class="mdi mdi-account-circle-outline nav-icon"></i>
+              </div>
+              <div class="user-details">
+                <span class="user-name" id="userName">Loading...</span>
+                <span class="user-hostname" id="userHostname">Loading...</span>
+              </div>
+
+            </div>
+
           </div>
         </div>
+    <!-- 中央主要容器 -->
+    <div class="container">
+      <!-- 聊天區域：對應 chatBox -->
+      <div class="chat-box" id="chatBox">
+        <!-- 聊天內容 -->
       </div>
-  
-      <!-- 聊天區域 -->
-      <div class="chat-box" id="chatBox"></div>
-  
+
       <!-- 輸入區域 -->
       <div class="input-area">
         <div class="input-container">
-          <textarea id="userInput" placeholder="傳訊息給 DataMart AI Assistant" rows="1"></textarea>
+          <textarea id="userInput" placeholder="傳訊息給SQLess" rows="1"></textarea>
           <button id="sendButton" class="send-button">
-            <i class="fas fa-arrow-up"></i>
+            <i class="mdi mdi-arrow-up nav-icon"></i>
           </button>
         </div>
       </div>
     </div>
-  </div>
   
-  <script>
-    const chatBox = document.getElementById('chatBox');
-    const userInput = document.getElementById('userInput');
-    const sendButton = document.getElementById('sendButton');
-  
-    // 下拉選單相關元素
-    const filterDropdown = document.getElementById('filterDropdown');
-    const dropdownHeader = document.getElementById('dropdownHeader');
-    const dropdownBody = document.getElementById('dropdownBody');
-    const dropdownSearch = document.getElementById('dropdownSearch');
-    const dropdownList = document.getElementById('dropdownList');
-    const dropdownSelected = document.getElementById('dropdownSelected');
-  
-    // 依據下拉選單的選擇更新 userInput 狀態
-    function updateUserInputStatus() {
-      if (dropdownSelected.textContent.trim() === "Choose Table") {
-        userInput.disabled = true;
-        userInput.placeholder = "請先選擇資料表";
-      } else {
-        userInput.disabled = false;
-        userInput.placeholder = "傳訊息給 DataMart AI Assistant";
-      }
-    }
-    updateUserInputStatus();
-  
-    // Splash Screen
-    window.addEventListener('load', () => {
-      setTimeout(() => {
-        const splashScreen = document.querySelector('.splash-screen');
-        const container = document.querySelector('.container');
-        splashScreen.style.opacity = '0';
-        container.classList.add('visible');
-        setTimeout(() => { splashScreen.style.display = 'none'; }, 500);
-        document.body.style.background = 'linear-gradient(135deg, #2a2a2a 40%, #1a1a1a 60%)';
-      }, 3000);
-    });
-  
-    /* === 文字輸入框自動高度 & 送出按鈕顯示 === */
-    function updateTextareaHeight() {
-      const lineHeight = parseFloat(getComputedStyle(userInput).lineHeight);
-      const maxHeight = lineHeight * 16;
-      userInput.style.height = 'auto';
-      const newHeight = Math.min(userInput.scrollHeight, maxHeight);
-      userInput.style.height = newHeight + 'px';
-      userInput.style.overflowY = userInput.scrollHeight > maxHeight ? 'auto' : 'hidden';
-    }
-    userInput.addEventListener('input', () => {
-      updateTextareaHeight();
-      sendButton.classList.toggle('visible', userInput.value.trim() !== '');
-    });
-  
-    /* === 發送訊息 === */
-    async function sendMessage() {
-      if (dropdownSelected.textContent.trim() === "Choose Table") {
-        alert("請先選擇資料表");
-        return;
-      }
-      const message = userInput.value.trim();
-      if (!message) return;
-  
-      hideCharts();
-      showChartsLoading();
-  
-      appendMessage('user', message);
-      userInput.value = '';
-      userInput.style.height = 'auto';
-      sendButton.classList.remove('visible');
-      setTypingStatus(true);
-  
-      try {
-        const response = await fetch('/api/message', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message })
-        });
-        const data = await response.json();
-        setTypingStatus(false);
-        if (data.response) {
-          appendMessage('bot', data.response, data.sql);
-        } else {
-          appendMessage('bot', 'Error: No response from server.');
-        }
-      } catch (error) {
-        setTypingStatus(false);
-        appendMessage('bot', 'Error: Unable to reach server.');
-      }
-    }
-    sendButton.addEventListener('click', async () => {
-      await sendMessage();
-      await loadCharts();
-    });
-    userInput.addEventListener('keypress', async (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        await sendMessage();
-        await loadCharts();
-      }
-    });
-  
-    /* === 顯示/隱藏 Bot 正在輸入 === */
-    function setTypingStatus(isTyping) {
-      const existingIndicator = document.querySelector('.status-indicator');
-      if (existingIndicator) {
-        existingIndicator.remove();
-      }
-      if (isTyping) {
-        const typingIndicator = document.createElement('div');
-        typingIndicator.className = 'status-indicator typing';
-        typingIndicator.textContent = 'Bot is typing';
-        chatBox.appendChild(typingIndicator);
-        chatBox.scrollTop = chatBox.scrollHeight;
-      }
-    }
-  
-    /* === 新增訊息到畫面 === */
-    function formatTime() {
-      const now = new Date();
-      return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    }
-    function appendMessage(sender, text, sql) {
-      const messageDiv = document.createElement('div');
-      messageDiv.className = `chat-message ${sender}`;
-  
-      const timeDiv = document.createElement('div');
-      timeDiv.className = 'message-info';
-      timeDiv.textContent = formatTime();
-  
-      const bubbleDiv = document.createElement('div');
-      bubbleDiv.className = 'bubble';
-      bubbleDiv.textContent = text;
-  
-      messageDiv.appendChild(timeDiv);
-      messageDiv.appendChild(bubbleDiv);
-  
-      if (sender === 'bot' && sql) {
-        const sqlToggle = document.createElement('div');
-        sqlToggle.className = 'toggle-sql';
-        sqlToggle.innerHTML = '<i class="fas fa-chevron-down"></i> 查看SQL';
-  
-        const sqlContainer = document.createElement('div');
-        sqlContainer.className = 'sql-container';
-        sqlContainer.textContent = sql;
-        sqlToggle.addEventListener('click', function() {
-          sqlContainer.style.display = (sqlContainer.style.display === 'none' || sqlContainer.style.display === '') ? 'block' : 'none';
-        });
-  
-        messageDiv.appendChild(sqlToggle);
-        messageDiv.appendChild(sqlContainer);
-      }
-  
-      chatBox.appendChild(messageDiv);
-      chatBox.scrollTop = chatBox.scrollHeight;
-    }
-  
-    /* === 圖表載入相關 === */
-    function showChartsLoading() {
-      const loader = document.getElementById('chartsLoader');
-      if (loader) { loader.classList.add('visible'); }
-    }
-    function hideChartsLoading() {
-      const loader = document.getElementById('chartsLoader');
-      if (loader) { loader.classList.remove('visible'); }
-    }
-    function hideCharts() {
-      const chartsContainer = document.getElementById('chartsContainer');
-      if (chartsContainer) { chartsContainer.innerHTML = ''; }
-    }
-    async function loadCharts() {
-      try {
-        const response = await fetch('/api/charts');
-        const data = await response.json();
-        const chartsContainer = document.getElementById('chartsContainer');
-        chartsContainer.innerHTML = '';
-        chartsContainer.style.display = 'block';
-  
-        data.charts.forEach((chartData, index) => {
-          const chartDiv = document.createElement('div');
-          chartDiv.style.width = '100%';
-          chartDiv.style.height = '400px';
-          chartDiv.style.margin = '20px 0';
-          chartDiv.style.borderRadius = '8px';
-          chartDiv.style.background = '#333';
-          chartDiv.id = `chart-${index}`;
-          chartsContainer.appendChild(chartDiv);
-  
-          if (chartData.type === 'image') {
-            const img = document.createElement('img');
-            img.src = chartData.data;
-            img.style.width = '100%';
-            img.style.height = '100%';
-            img.style.objectFit = 'contain';
-            chartDiv.appendChild(img);
-          }
-        });
-      } catch (error) {
-        console.error('載入圖表失敗:', error);
-      } finally {
-        hideChartsLoading();
-      }
-    }
-  
-    /* === 左側欄按鈕切換 (Analytics) === */
-    const chartToggle = document.querySelector('.chart-toggle');
-    const chartPanel = document.querySelector('.chart-panel');
-    const mainContent = document.querySelector('.main-content');
-    chartToggle.addEventListener('click', () => {
-      chartPanel.classList.toggle('visible');
-      mainContent.classList.toggle('shifted');
-    });
-  
-    /* === 初始時，給個簡單的 Bot 招呼訊息 === */
-    setTypingStatus(true);
-    setTimeout(() => {
-      setTypingStatus(false);
-      appendMessage('bot', '您好，需要什麼幫助嗎?', "SELECT * FROM help_requests WHERE status='active';");
-    }, 4000);
-  
-    /* === 自訂下拉選單 (可搜尋) === */
-    dropdownHeader.addEventListener('click', () => {
-      filterDropdown.classList.toggle('open');
-      dropdownSearch.value = '';
-      filterDropdownSearch('');
-    });
-    dropdownList.addEventListener('click', async (e) => {
-      if (e.target.tagName.toLowerCase() === 'li') {
-        const selectedText = e.target.innerText;
-        const selectedValue = e.target.getAttribute('data-value');
-        dropdownSelected.textContent = selectedText;
-        filterDropdown.classList.remove('open');
-        updateUserInputStatus();
-        try {
-          const resp = await fetch('/select_table', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tableName: selectedValue })
-          });
-          const data = await resp.json();
-          if (data.status === 'OK') {
-            console.log('後端成功接收 tableName:', selectedValue);
-          }
-        } catch (error) {
-          console.error('傳送選單資料失敗', error);
-        }
-      }
-    });
-    dropdownSearch.addEventListener('input', (e) => {
-      filterDropdownSearch(e.target.value.trim().toLowerCase());
-    });
-    function filterDropdownSearch(keyword) {
-      const items = dropdownList.querySelectorAll('li');
-      items.forEach((item) => {
-        const text = item.innerText.toLowerCase();
-        item.style.display = text.includes(keyword) ? 'block' : 'none';
-      });
-    }
-    document.addEventListener('click', (e) => {
-      if (!filterDropdown.contains(e.target) && !dropdownHeader.contains(e.target)) {
-        filterDropdown.classList.remove('open');
-      }
-    });
-  </script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="/static/js/scripts.js"></script>
 </body>
 </html>
-
-

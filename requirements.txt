@@ -1,0 +1,13 @@
+cx_Oracle==8.3.0
+cx_Oracle==8.3.0
+fastapi==0.115.11
+Flask==3.1.0
+langgraph==0.3.5
+pandas==2.2.3
+pycryptodome==3.21.0
+redis==5.2.1
+Requests==2.32.3
+sse_starlette==2.2.1
+starlette==0.46.0
+uvicorn==0.34.0
+tiktoken==0.8.0
